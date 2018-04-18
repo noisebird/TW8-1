@@ -15,5 +15,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 //    根据id查找员工
     Employee findById(Long id);
 
-
+//    分页查找
+    Page findAll(Pageable pageable);
 }
