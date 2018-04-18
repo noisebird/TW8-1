@@ -17,4 +17,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 //    分页查找
     Page findAll(Pageable pageable);
+
+    //     根据性别来查找
+    List<Employee> findByGender(String gender);
 }

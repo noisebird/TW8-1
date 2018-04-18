@@ -45,9 +45,14 @@ public class EmployeeRepositoryTest {
         List<Employee> list=employeeRepository.findAll();
         assertTrue(list.size()==15);
     }
-
     @Test
     public void should_find_employee_by_id_method_return_result() throws Exception {
+        Employee employee=employeeRepository.findById(new Integer(1).longValue());
+        assertTrue(employee.getName().equals("baidu1"));
+    }
+
+    @Test
+    public void should_find_employee_by_page_method_return_result() throws Exception {
         Page page=employeeRepository.findAll(new PageRequest(0,5));
         String expectedAllIds="12345";
         List<Employee> content=page.getContent();
@@ -56,6 +61,12 @@ public class EmployeeRepositoryTest {
             str+=item.getId();
         assertEquals(expectedAllIds,str);
         assertEquals(content.size(),5);
+
+    }
+    @Test
+    public void should_find_employee_by_gender_method_return_result() throws Exception {
+        List<Employee> employees = employeeRepository.findByGender("male");
+        assertEquals(10,employees.size());
 
     }
 }
