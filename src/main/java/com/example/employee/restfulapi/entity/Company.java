@@ -13,6 +13,8 @@ public class Company {
     private String companyName;
     private Integer employeesNumber;
 
+    @OneToMany(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER, mappedBy = "company")
+    private Set<Employee> employees = new HashSet<>();
     public Company() {
     }
 
@@ -27,6 +29,14 @@ public class Company {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Set<Employee> getEmployees() {
+        return employees;
+    }
+
+    public void setEmployees(Set<Employee> employees) {
+        this.employees = employees;
     }
 
     public String getCompanyName() {
