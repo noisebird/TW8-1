@@ -1,4 +1,5 @@
 package com.example.employee.restfulapi.controller;
+
 import com.example.employee.restfulapi.entity.Company;
 import com.example.employee.restfulapi.entity.Employee;
 import com.example.employee.restfulapi.repository.CompanyRepository;
@@ -6,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,55 +21,60 @@ public class CompanyController {
     @Autowired
     CompanyRepository companyRepository;
 
-    @RequestMapping(method = RequestMethod.GET)
-    List<Company> getAllCompaniesList() {
-        return companyRepository.findAll();
+    @GetMapping
+    ResponseEntity<?> getAllCompaniesList() {
+        return new ResponseEntity<List<Company>>(companyRepository.findAll(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    Company getCompanyById(@PathVariable Long id) {
-        return companyRepository.findById(id);
-    }
-
-    @RequestMapping(value = "/{id}/employees", method = RequestMethod.GET)
-    List<Employee> getEmployeesListByCompanyId(@PathVariable Long id) {
-        return companyRepository.getEmployeesByCompanyId(id);
-    }
-
-    @RequestMapping(value = "/page/{page}/pageSize/{pageSize}", method = RequestMethod.GET)
-    Page getEmployeesListByCompanyId(@PathVariable int page, @PathVariable int pageSize) {
-        return companyRepository.findAll(new PageRequest(page, pageSize));
-    }
-
-    @RequestMapping(method = RequestMethod.POST)
-    String addCompany(@RequestBody Company company) {
-        if (companyRepository.save(company)!= null) {
-            return "添加company成功";
+    @GetMapping("/{id}")
+    ResponseEntity<?> getCompanyById(@PathVariable Long id) {
+        Company company = companyRepository.findById(id);
+        if (company == null) {
+            return new ResponseEntity<String>("id is not found", HttpStatus.NOT_FOUND);
         }
-        return "添加company失败";
+        return new ResponseEntity<Company>(company, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    String updateCompany(@ModelAttribute Company company, @PathVariable Long id) {
+    @GetMapping(value = "/{id}/employees")
+    ResponseEntity<?> getEmployeesListByCompanyId(@PathVariable Long id) {
+        List<Employee> employees = companyRepository.getEmployeesByCompanyId(id);
+        return new ResponseEntity<List<Employee>>(employees, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/page/{page}/pageSize/{pageSize}")
+    ResponseEntity<?> getEmployeesListByCompanyId(@PathVariable int page, @PathVariable int pageSize) {
+        return new ResponseEntity<Page>(companyRepository.findAll(new PageRequest(page, pageSize)), HttpStatus.OK);
+    }
+
+    @PostMapping
+    ResponseEntity<?> addCompany(@RequestBody Company company) {
+        Company saveCompany = companyRepository.save(company);
+        if ( saveCompany!= null) {
+            return new ResponseEntity<Company>(saveCompany, HttpStatus.OK);
+        }
+        return new ResponseEntity<Company>(new Company(), HttpStatus.EXPECTATION_FAILED);
+    }
+
+    @PutMapping(value = "/{id}")
+    ResponseEntity<?> updateCompany(@RequestBody Company company, @PathVariable Long id) {
         if (companyRepository.findById(id) == null) {
-            throw new Error("The id :" + id + "not exist in table");
+            return new ResponseEntity<String>("id is not found!", HttpStatus.NOT_FOUND);
         }
-        if (companyRepository.updateCompany(company.getCompanyName(), company.getEmployeesNumber(), id) == 1) {
-            return "更新company成功！";
-        }
-        return "更新company失败";
+        companyRepository.updateCompany(company.getCompanyName(), company.getEmployeesNumber(), id);
+        return new ResponseEntity<Company>(HttpStatus.NO_CONTENT);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    String updateCompany(@PathVariable Long id) {
-        if (companyRepository.findById(id) == null) {
-            throw new Error("The id :" + id + "not exist in table");
+    @DeleteMapping("/{id}")
+    ResponseEntity<?> deleteCompany(@PathVariable Long id) {
+        Company company =companyRepository.findById(id);
+        if (company == null) {
+            return new ResponseEntity<String>("id is not found!", HttpStatus.NOT_FOUND);
         }
         companyRepository.delete(id);
         if (companyRepository.findById(id) == null) {
-            return "删除company成功";
+            return new ResponseEntity<Company>(company, HttpStatus.OK);
         }
-        return "删除company失败";
+        return  new ResponseEntity<String>("delete company failure", HttpStatus.EXPECTATION_FAILED);
 
     }
 

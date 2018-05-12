@@ -8,67 +8,73 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @EnableAutoConfiguration
-@RequestMapping("employees")
+@RequestMapping("/employees")
 public class EmployeeController {
     //在此处完成Employee API
     @Autowired
     EmployeeRepository employeeRepository;
 
-    @RequestMapping(method = RequestMethod.GET)
-    List<Employee> getAllCompaniesList() {
-        return employeeRepository.findAll();
+    @GetMapping
+    ResponseEntity<?> getAllCompaniesList() {
+        return new ResponseEntity<List<Employee>>(employeeRepository.findAll(), HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    Employee getCompanyById(@PathVariable Long id) {
-        return employeeRepository.findById(id);
-    }
-
-    @RequestMapping(value = "/page/{page}/pageSize/{pageSize}", method = RequestMethod.GET)
-    Page getPageList(@PathVariable int page, @PathVariable int pageSize) {
-        return employeeRepository.findAll(new PageRequest(page, pageSize));
-    }
-
-    @RequestMapping(value = "/male", method = RequestMethod.GET)
-    List<Employee> getGenderList() {
-        return employeeRepository.findByGender("male");
-    }
-
-    @RequestMapping(method = RequestMethod.POST)
-    String addCompany(@RequestBody Employee employee) {
-        if (employeeRepository.save(employee) != null) {
-            return "添加company成功";
+    @GetMapping(value = "/{id}")
+    ResponseEntity<?> getCompanyById(@PathVariable Long id) {
+        Employee employee = employeeRepository.findById(id);
+        if (employee == null) {
+            return new ResponseEntity<String>("id is not found", HttpStatus.NOT_FOUND);
         }
-        return "添加数据失败";
+        return new ResponseEntity<Employee>(employee, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-     String updateEmployee(@ModelAttribute Employee employee,@PathVariable Long id) throws Exception {
+    @GetMapping(value = "/page/{page}/pageSize/{pageSize}")
+    ResponseEntity<?> getPageList(@PathVariable int page, @PathVariable int pageSize) {
+        return new ResponseEntity<Page>(employeeRepository.findAll(new PageRequest(page, pageSize)), HttpStatus.OK);
+    }
+
+    @GetMapping("/male")
+    ResponseEntity<?> getGenderList() {
+        return new ResponseEntity<List<Employee>>(employeeRepository.findByGender("male"), HttpStatus.OK);
+    }
+
+    @PostMapping
+    ResponseEntity<?> addCompany(@RequestBody Employee employee) {
+        Employee savedEmployee = employeeRepository.save(employee);
+        if (savedEmployee == null) {
+            return new ResponseEntity<String>("save employee failure!", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<Employee>(savedEmployee, HttpStatus.CREATED);
+    }
+
+    @PutMapping(value = "/{id}")
+    ResponseEntity<?> updateEmployee(@RequestBody Employee employee, @PathVariable Long id) throws Exception {
         if (employeeRepository.findById(id) == null) {
-            throw new Exception("Employee not found by id: " + id);
+            return new ResponseEntity<String>("id is not found", HttpStatus.NOT_FOUND);
         }
-        if (employeeRepository.updateEmployee(employee.getName(), employee.getAge(), employee.getGender(), employee.getCompanyId(), employee.getSalary(), id) == 1) {
-            return "数据更新成功";
-        }
-        return "数据更新失败";
+        employeeRepository.updateEmployee(employee.getName(), employee.getAge(), employee.getGender(), employee.getCompanyId(), employee.getSalary(), id);
+        return new ResponseEntity<Employee>(employeeRepository.findById(id), HttpStatus.NO_CONTENT);
+
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    String deleteEmployeeById(@PathVariable Long id) throws Exception {
+    @DeleteMapping(value = "/{id}")
+    ResponseEntity<?> deleteEmployeeById(@PathVariable Long id) throws Exception {
         if (employeeRepository.findById(id) == null) {
             throw new Exception("Employee do not found by id: " + id);
         }
         employeeRepository.delete(id);
         if (employeeRepository.findById(id) == null) {
-            return "删除数据成功";
+            return new ResponseEntity<Employee>(HttpStatus.NO_CONTENT);
         }
-        return "删除数据失败";
+        return new ResponseEntity<String>("delete employee failure", HttpStatus.NO_CONTENT);
 
     }
 

@@ -37,7 +37,7 @@ public class EmployeeRepositoryTest {
     @Before
     public void before() {
         Flyway flyway =new Flyway();
-        flyway.setDataSource("jdbc:mysql://localhost:3306/employee_db","root","root");
+        flyway.setDataSource("jdbc:mysql://192.168.99.100:3306/employee_db","root","root");
         flyway.clean();
         flyway.migrate();
     }

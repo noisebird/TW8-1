@@ -23,6 +23,7 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
     List<Employee> getEmployeesByCompanyId(long companyId);
 
     Page findAll(Pageable pageable);
+
     @Transactional
     @Modifying
     @Query(value = "update Company c set c.companyName=?1,c.employeesNumber=?2 where c.id=?3")
